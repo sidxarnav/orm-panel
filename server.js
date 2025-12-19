@@ -1,3 +1,5 @@
+console.log("BOOTING SERVER...");
+
 const express = require("express");
 const app = express();
 
@@ -8,5 +10,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port", PORT);
+  console.log("SERVER STARTED ON PORT:", PORT);
 });
