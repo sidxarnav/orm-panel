@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Client Dashboard</title>
+</head>
+
+<body onload="loadDashboard()">
+
+<h2 id="welcome"></h2>
+
+<button onclick="logout()">Logout</button>
+
+<hr>
+
+<h3>Your Reviews</h3>
+
+<table border="1" cellpadding="10">
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th>Note</th>
+      <th>Removal</th>
+    </tr>
+  </thead>
+  <tbody id="reviews"></tbody>
+</table>
+
+<script>
+requireAuth();
+
+async function loadDashboard() {
+  const name = localStorage.getItem("clientName");
+  document.getElementById("welcome").innerText =
+    "Welcome, " + name;
+
+  const token = localStorage.getItem("token");
+
+  const res = await fetch("/api/my/reviews", {
+    headers: {
+      Authorization: "Bearer " + token
+    }
+  });
+
+  const data = await res.json();
+  const tbody = document.getElementById("reviews");
+
+  if (!data.length) {
+    tbody.innerHTML =
+      "<tr><td colspan='3'>No reviews yet</td></tr>";
+    return;
+  }
+
+  data.forEach(r => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.status}</td>
+        <td>${r.note || "-"}</td>
+        <td>${r.removal || "-"}</td>
+      </tr>
+    `;
+  });
+}
+</script>
+
+<script src="app.js"></script>
+
+</body>
+</html>
