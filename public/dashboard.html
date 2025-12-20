@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ORM Dashboard</title>
+  <title>ORM Admin Dashboard</title>
   <style>
     body {
       font-family: Arial;
@@ -44,39 +44,55 @@
   }
 </script>
 
-<h1>ORM Dashboard</h1>
+<h1>ORM Admin Dashboard</h1>
 <button onclick="logout()">Logout</button>
 
-<h2>Add Client</h2>
-<input id="clientName" placeholder="Client Name">
-<select id="platform">
-  <option>Google</option>
-  <option>Yelp</option>
-  <option>Trustpilot</option>
-</select>
-<button onclick="addClient()">Add Client</button>
+<hr>
 
+<!-- ================= CLIENT LIST ================= -->
+<h2>Clients</h2>
 <table id="clientsTable">
-  <tr><th>Client</th><th>Platform</th></tr>
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Email</th>
+  </tr>
 </table>
 
-<h2>Add Review</h2>
-<select id="reviewClient"></select>
+<hr>
+
+<!-- ================= ADD REVIEW ================= -->
+<h2>Add Review (Assign to Client)</h2>
+
+<select id="clientSelect"></select>
+
 <select id="reviewStatus">
   <option>Positive</option>
   <option>Negative</option>
 </select>
+
 <textarea id="note" placeholder="Internal note"></textarea>
-<select id="removalStatus">
+
+<select id="removal">
   <option>Not Reported</option>
   <option>Reported</option>
   <option>Pending</option>
   <option>Resolved</option>
 </select>
+
 <button onclick="addReview()">Add Review</button>
 
+<hr>
+
+<!-- ================= ALL REVIEWS ================= -->
+<h2>All Reviews</h2>
 <table id="reviewsTable">
-  <tr><th>Client</th><th>Status</th><th>Note</th><th>Removal</th></tr>
+  <tr>
+    <th>Client ID</th>
+    <th>Status</th>
+    <th>Note</th>
+    <th>Removal</th>
+  </tr>
 </table>
 
 <script>
@@ -85,62 +101,82 @@
     window.location.href = "/login.html";
   }
 
+  /* ===== LOAD CLIENTS (FROM client_users) ===== */
   async function loadClients() {
-    const res = await fetch("/api/clients");
+    const res = await fetch("/api/admin/clients");
     const data = await res.json();
 
-    clientsTable.innerHTML = `<tr><th>Client</th><th>Platform</th></tr>`;
-    reviewClient.innerHTML = "";
+    const table = document.getElementById("clientsTable");
+    const select = document.getElementById("clientSelect");
+
+    table.innerHTML = `
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+      </tr>
+    `;
+    select.innerHTML = "";
 
     data.forEach(c => {
-      clientsTable.innerHTML += `<tr><td>${c.name}</td><td>${c.platform}</td></tr>`;
-      reviewClient.innerHTML += `<option>${c.name}</option>`;
+      table.innerHTML += `
+        <tr>
+          <td>${c.id}</td>
+          <td>${c.name}</td>
+          <td>${c.email}</td>
+        </tr>
+      `;
+
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.text = `${c.name} (${c.email})`;
+      select.appendChild(opt);
     });
   }
 
+  /* ===== ADD REVIEW FOR CLIENT ===== */
+  async function addReview() {
+    const client_id = document.getElementById("clientSelect").value;
+    const status = document.getElementById("reviewStatus").value;
+    const note = document.getElementById("note").value;
+    const removal = document.getElementById("removal").value;
+
+    await fetch("/api/admin/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ client_id, status, note, removal })
+    });
+
+    document.getElementById("note").value = "";
+    alert("Review added successfully");
+    loadReviews();
+  }
+
+  /* ===== LOAD ALL REVIEWS ===== */
   async function loadReviews() {
     const res = await fetch("/api/reviews");
     const data = await res.json();
 
-    reviewsTable.innerHTML = `<tr><th>Client</th><th>Status</th><th>Note</th><th>Removal</th></tr>`;
+    const table = document.getElementById("reviewsTable");
+    table.innerHTML = `
+      <tr>
+        <th>Client ID</th>
+        <th>Status</th>
+        <th>Note</th>
+        <th>Removal</th>
+      </tr>
+    `;
 
     data.forEach(r => {
-      reviewsTable.innerHTML += `
+      table.innerHTML += `
         <tr>
-          <td>${r.client}</td>
+          <td>${r.client_id || "-"}</td>
           <td>${r.status}</td>
-          <td>${r.note}</td>
+          <td>${r.note || "-"}</td>
           <td>${r.removal}</td>
-        </tr>`;
+        </tr>
+      `;
     });
-  }
-
-  async function addClient() {
-    await fetch("/api/clients", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: clientName.value,
-        platform: platform.value
-      })
-    });
-    clientName.value = "";
-    loadClients();
-  }
-
-  async function addReview() {
-    await fetch("/api/reviews", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        client: reviewClient.value,
-        status: reviewStatus.value,
-        note: note.value,
-        removal: removalStatus.value
-      })
-    });
-    note.value = "";
-    loadReviews();
   }
 
   loadClients();
@@ -148,4 +184,4 @@
 </script>
 
 </body>
-  </html>
+</html>
