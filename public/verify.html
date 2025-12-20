@@ -1,9 +1,11 @@
-<!DOCTYPE html><html><body>
-<button onclick="v()">Verify Email</button>
+<!DOCTYPE html>
+<html>
+<body>
+<h3 id="msg">Verifying...</h3>
 <script>
-async function v(){
- const t=new URLSearchParams(location.search).get("token");
- await fetch("/api/client/verify",{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t})});
- alert("Verified"); location.href="/client-login.html";
-}
-</script></body></html>
+const token=new URLSearchParams(location.search).get("token");
+fetch("/api/client/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})})
+.then(()=>{msg.innerText="Verified! Redirecting...";setTimeout(()=>location.href="/v2/client-login.html",1500)});
+</script>
+</body>
+</html>
