@@ -2,23 +2,76 @@
 <html>
 <head>
   <title>Reset Password</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      padding: 30px;
+    }
+    .box {
+      max-width: 420px;
+      background: #fff;
+      padding: 25px;
+      margin: auto;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,.1);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    button {
+      background: #40739e;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
 
-<h2>Reset Password</h2>
+<script>
+  // ✅ STEP 10.2 — TOKEN MUST EXIST
+  const token = new URLSearchParams(window.location.search).get("token");
+  if (!token) {
+    alert("Invalid reset link");
+    window.location.href = "/v2/client-login.html";
+  }
+</script>
 
-<input id="password" type="password" placeholder="New password"><br><br>
+<div class="box">
+  <h2>Reset Password</h2>
 
-<button onclick="resetPassword()">Reset Password</button>
+  <input id="password" type="password" placeholder="New password">
+  <input id="confirm" type="password" placeholder="Confirm password">
+
+  <button onclick="resetPassword()">Reset Password</button>
+</div>
 
 <script>
-const token = new URLSearchParams(window.location.search).get("token");
-
 async function resetPassword() {
   const password = document.getElementById("password").value;
+  const confirm = document.getElementById("confirm").value;
 
-  if (!password) {
-    alert("Password required");
+  if (!password || !confirm) {
+    alert("Both fields required");
+    return;
+  }
+
+  if (password.length < 6) {
+    alert("Password must be at least 6 characters");
+    return;
+  }
+
+  if (password !== confirm) {
+    alert("Passwords do not match");
     return;
   }
 
@@ -30,7 +83,7 @@ async function resetPassword() {
 
   if (res.ok) {
     alert("Password reset successful. Please login.");
-    window.location.href = "client-login.html";
+    window.location.href = "/v2/client-login.html";
   } else {
     alert("Invalid or expired reset link");
   }
