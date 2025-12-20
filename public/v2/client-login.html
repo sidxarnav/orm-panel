@@ -2,20 +2,65 @@
 <html>
 <head>
   <title>Client Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      padding: 30px;
+    }
+    .box {
+      max-width: 420px;
+      background: #fff;
+      padding: 25px;
+      margin: auto;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,.1);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    button {
+      background: #40739e;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    a {
+      display: block;
+      margin-top: 12px;
+      text-align: center;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
 
-<h2>Client Login</h2>
+<script>
+  /* ✅ STEP-10 — AUTO REDIRECT IF ALREADY LOGGED IN */
+  if (localStorage.getItem("token")) {
+    window.location.href = "/v2/client-dashboard.html";
+  }
+</script>
 
-<input id="email" type="email" placeholder="Email"><br><br>
-<input id="password" type="password" placeholder="Password"><br><br>
+<div class="box">
+  <h2>Client Login</h2>
 
-<button onclick="login()">Login</button>
+  <input id="email" type="email" placeholder="Email address">
+  <input id="password" type="password" placeholder="Password">
 
-<p>
-  <a href="client-signup.html">Create new account</a><br>
-  <a href="forgot.html">Forgot password?</a>
-</p>
+  <button onclick="login()">Login</button>
+
+  <a href="/v2/client-signup.html">Create new account</a>
+  <a href="/v2/forgot.html">Forgot password?</a>
+</div>
 
 <script src="app.js"></script>
 
