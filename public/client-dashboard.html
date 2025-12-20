@@ -1,25 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head><title>Client Dashboard</title></head>
-<body>
-
-<script>
-if (!sessionStorage.getItem("clientLoggedIn")) {
-  window.location.href = "/client-login.html";
-}
-</script>
-
-<h1>Client Dashboard</h1>
-<p>Your reputation data will appear here.</p>
-
+<!DOCTYPE html><html><head>
+<title>Dashboard</title>
+<style>body{font-family:Arial;background:#f4f6f8;padding:20px}
+.card{background:#fff;padding:15px;border-radius:6px}</style>
+</head><body>
+<h2>My Reputation</h2>
+<div class="card" id="list"></div>
 <button onclick="logout()">Logout</button>
-
 <script>
-function logout() {
-  sessionStorage.removeItem("clientLoggedIn");
-  window.location.href = "/client-login.html";
-}
-</script>
-
-</body>
-</html>
+const t=localStorage.getItem("token"); if(!t) location.href="/client-login.html";
+fetch("/api/my/reviews",{headers:{Authorization:"Bearer "+t}})
+.then(r=>r.json()).then(d=>{
+ list.innerHTML=d.map(x=>`<p>${x.status} | ${x.removal}<br>${x.note||""}</p>`).join("");
+});
+function logout(){localStorage.removeItem("token");location.href="/client-login.html";}
+</script></body></html>
