@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>Client Dashboard</title></head>
+<body>
+
+<script>
+if (!sessionStorage.getItem("clientLoggedIn")) {
+  window.location.href = "/client-login.html";
+}
+</script>
+
+<h1>Client Dashboard</h1>
+<p>Your reputation data will appear here.</p>
+
+<button onclick="logout()">Logout</button>
+
+<script>
+function logout() {
+  sessionStorage.removeItem("clientLoggedIn");
+  window.location.href = "/client-login.html";
+}
+</script>
+
+</body>
+</html>
