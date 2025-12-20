@@ -1,116 +1,69 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>ORM Dashboard</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    h2 { margin-top: 30px; }
-    input, select, textarea, button {
-      margin: 5px 0;
-      padding: 6px;
-      width: 100%;
-      max-width: 400px;
-    }
-    table {
-      border-collapse: collapse;
-      margin-top: 10px;
-      width: 100%;
-      max-width: 800px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-    }
-  </style>
-</head>
-<body>
-
-<h1>ORM Panel</h1>
-
-<!-- CLIENTS -->
-<h2>Add Client</h2>
-<input id="clientName" placeholder="Client Name">
-<select id="platform">
-  <option>Google</option>
-  <option>Yelp</option>
-  <option>Trustpilot</option>
-</select>
-<button onclick="addClient()">Add Client</button>
-
-<table id="clientsTable">
-  <tr>
-    <th>Client</th>
-    <th>Platform</th>
-  </tr>
-</table>
-
-<!-- REVIEWS -->
-<h2>Add Review</h2>
-<select id="reviewClient"></select>
-<select id="reviewStatus">
-  <option>Positive</option>
-  <option>Negative</option>
-</select>
-<textarea id="note" placeholder="Internal note"></textarea>
-<select id="removalStatus">
-  <option>Not Reported</option>
-  <option>Reported</option>
-  <option>Pending</option>
-  <option>Resolved</option>
-</select>
-<button onclick="addReview()">Add Review</button>
-
-<table id="reviewsTable">
-  <tr>
-    <th>Client</th>
-    <th>Status</th>
-    <th>Note</th>
-    <th>Removal</th>
-  </tr>
-</table>
-
-<!-- RESPONSE DRAFTS -->
-<h2>Response Drafts</h2>
-<textarea readonly>
-Thank you for your feedback. We’re sorry for your experience and would love to resolve this offline. Please contact us directly.
-</textarea>
-
 <script>
-  const clients = [];
-  const reviews = [];
+  async function loadClients() {
+    const res = await fetch("/api/clients");
+    const data = await res.json();
 
-  function addClient() {
-    const name = clientName.value;
-    const plat = platform.value;
-    if (!name) return;
+    clientsTable.innerHTML = `
+      <tr><th>Client</th><th>Platform</th></tr>
+    `;
+    reviewClient.innerHTML = "";
 
-    clients.push({ name, plat });
-
-    clientsTable.innerHTML += `<tr><td>${name}</td><td>${plat}</td></tr>`;
-    reviewClient.innerHTML += `<option>${name}</option>`;
-    clientName.value = "";
+    data.forEach(c => {
+      clientsTable.innerHTML += `
+        <tr><td>${c.name}</td><td>${c.platform}</td></tr>
+      `;
+      reviewClient.innerHTML += `<option>${c.name}</option>`;
+    });
   }
 
-  function addReview() {
-    const client = reviewClient.value;
-    const status = reviewStatus.value;
-    const noteText = note.value;
-    const removal = removalStatus.value;
+  async function loadReviews() {
+    const res = await fetch("/api/reviews");
+    const data = await res.json();
 
-    reviews.push({ client, status, noteText, removal });
-
-    reviewsTable.innerHTML += `
-      <tr>
-        <td>${client}</td>
-        <td>${status}</td>
-        <td>${noteText}</td>
-        <td>${removal}</td>
-      </tr>
+    reviewsTable.innerHTML = `
+      <tr><th>Client</th><th>Status</th><th>Note</th><th>Removal</th></tr>
     `;
 
-    note.value = "";
+    data.forEach(r => {
+      reviewsTable.innerHTML += `
+        <tr>
+          <td>${r.client}</td>
+          <td>${r.status}</td>
+          <td>${r.note}</td>
+          <td>${r.removal}</td>
+        </tr>
+      `;
+    });
   }
-</script>
 
-</body>
-  </html>
+  async function addClient() {
+    await fetch("/api/clients", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: clientName.value,
+        platform: platform.value
+      })
+    });
+    clientName.value = "";
+    loadClients();
+  }
+
+  async function addReview() {
+    await fetch("/api/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client: reviewClient.value,
+        status: reviewStatus.value,
+        note: note.value,
+        removal: removalStatus.value
+      })
+    });
+    note.value = "";
+    loadReviews();
+  }
+
+  loadClients();
+  loadReviews();
+</script>
