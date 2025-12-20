@@ -1,17 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ORM Dashboard</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f6fa;
+      padding: 20px;
+    }
+    h1 {
+      background: #2f3640;
+      color: white;
+      padding: 10px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      max-width: 400px;
+      padding: 6px;
+      margin-top: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+    button {
+      background: #40739e;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
 <script>
+  if (!sessionStorage.getItem("loggedIn")) {
+    window.location.href = "/login.html";
+  }
+</script>
+
+<h1>ORM Dashboard</h1>
+<button onclick="logout()">Logout</button>
+
+<h2>Add Client</h2>
+<input id="clientName" placeholder="Client Name">
+<select id="platform">
+  <option>Google</option>
+  <option>Yelp</option>
+  <option>Trustpilot</option>
+</select>
+<button onclick="addClient()">Add Client</button>
+
+<table id="clientsTable">
+  <tr><th>Client</th><th>Platform</th></tr>
+</table>
+
+<h2>Add Review</h2>
+<select id="reviewClient"></select>
+<select id="reviewStatus">
+  <option>Positive</option>
+  <option>Negative</option>
+</select>
+<textarea id="note" placeholder="Internal note"></textarea>
+<select id="removalStatus">
+  <option>Not Reported</option>
+  <option>Reported</option>
+  <option>Pending</option>
+  <option>Resolved</option>
+</select>
+<button onclick="addReview()">Add Review</button>
+
+<table id="reviewsTable">
+  <tr><th>Client</th><th>Status</th><th>Note</th><th>Removal</th></tr>
+</table>
+
+<script>
+  function logout() {
+    sessionStorage.removeItem("loggedIn");
+    window.location.href = "/login.html";
+  }
+
   async function loadClients() {
     const res = await fetch("/api/clients");
     const data = await res.json();
 
-    clientsTable.innerHTML = `
-      <tr><th>Client</th><th>Platform</th></tr>
-    `;
+    clientsTable.innerHTML = `<tr><th>Client</th><th>Platform</th></tr>`;
     reviewClient.innerHTML = "";
 
     data.forEach(c => {
-      clientsTable.innerHTML += `
-        <tr><td>${c.name}</td><td>${c.platform}</td></tr>
-      `;
+      clientsTable.innerHTML += `<tr><td>${c.name}</td><td>${c.platform}</td></tr>`;
       reviewClient.innerHTML += `<option>${c.name}</option>`;
     });
   }
@@ -20,9 +102,7 @@
     const res = await fetch("/api/reviews");
     const data = await res.json();
 
-    reviewsTable.innerHTML = `
-      <tr><th>Client</th><th>Status</th><th>Note</th><th>Removal</th></tr>
-    `;
+    reviewsTable.innerHTML = `<tr><th>Client</th><th>Status</th><th>Note</th><th>Removal</th></tr>`;
 
     data.forEach(r => {
       reviewsTable.innerHTML += `
@@ -31,8 +111,7 @@
           <td>${r.status}</td>
           <td>${r.note}</td>
           <td>${r.removal}</td>
-        </tr>
-      `;
+        </tr>`;
     });
   }
 
@@ -67,3 +146,6 @@
   loadClients();
   loadReviews();
 </script>
+
+</body>
+  </html>
