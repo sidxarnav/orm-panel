@@ -2,34 +2,81 @@
 <html>
 <head>
   <title>ORM Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      padding: 30px;
+    }
+    .box {
+      max-width: 700px;
+      background: #fff;
+      padding: 25px;
+      margin: auto;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,.1);
+    }
+    h1 {
+      margin-top: 0;
+    }
+    a.btn {
+      display: inline-block;
+      margin-right: 10px;
+      margin-top: 10px;
+      padding: 10px 18px;
+      background: #40739e;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    a.btn.secondary {
+      background: #2f3640;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    footer {
+      margin-top: 30px;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Online Reputation Management</h1>
-<p>Manage and protect your business reputation</p>
+<script>
+  // ✅ STEP 10.1 — AUTO REDIRECT IF CLIENT LOGGED IN
+  if (localStorage.getItem("clientToken")) {
+    window.location.href = "/v2/client-dashboard.html";
+  }
+</script>
 
-<!-- ✅ CLIENT LINKS (FIXED) -->
-<a href="/v2/client-login.html">Client Login</a>
-&nbsp;&nbsp;
-<a href="/v2/client-signup.html">Client Signup</a>
+<div class="box">
+  <h1>Online Reputation Management</h1>
+  <p>Manage and protect your business reputation with transparency and ethics.</p>
 
-<hr>
+  <!-- ✅ CLIENT ONLY -->
+  <a class="btn" href="/v2/client-login.html">Client Login</a>
+  <a class="btn secondary" href="/v2/client-signup.html">Client Signup</a>
 
-<h2>Services</h2>
-<ul>
-  <li>Review Monitoring</li>
-  <li>Negative Review Handling</li>
-  <li>Policy-based Reporting</li>
-</ul>
+  <hr>
 
-<h2>FAQ</h2>
-<p>We follow ethical ORM practices.</p>
+  <h2>Services</h2>
+  <ul>
+    <li>Review Monitoring</li>
+    <li>Negative Review Handling</li>
+    <li>Policy-based Reporting</li>
+  </ul>
 
-<!-- (OPTIONAL) ADMIN LOGIN HIDDEN -->
-<hr>
-<small>
-  <a href="/login.html">Admin Login</a>
-</small>
+  <h2>FAQ</h2>
+  <p>We follow ethical ORM practices. No fake reviews. No illegal removals.</p>
+
+  <footer>
+    <a href="/login.html">Admin Login</a>
+  </footer>
+</div>
 
 </body>
-</html>
+      </html>
