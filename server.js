@@ -9,7 +9,7 @@ const path = require("path");
 
 const app = express();
 app.use(bodyParser.json());
-app.use(express.static("public")); // OLD public (admin + old files)
+app.use(express.static("public"));        // OLD admin + files
 app.use("/v2", express.static("public/v2")); // NEW client system
 
 const PORT = process.env.PORT || 3000;
@@ -52,14 +52,15 @@ function authClient(req, res, next) {
 }
 
 /* =========================================================
-   ROOT ENTRY POINT (SINGLE PUBLIC LINK)
+   ROOT ENTRY POINT
    ========================================================= */
 app.get("/", (req, res) => {
-  // Client always lands on new SaaS landing page
   res.sendFile(path.join(__dirname, "public/v2/index.html"));
 });
 
-/* ===== ADMIN LOGIN ===== */
+/* =========================================================
+   ADMIN AUTH
+   ========================================================= */
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
   if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
@@ -68,7 +69,9 @@ app.post("/api/login", (req, res) => {
   res.status(401).json({ success: false });
 });
 
-/* ===== CLIENT SIGNUP ===== */
+/* =========================================================
+   CLIENT AUTH
+   ========================================================= */
 app.post("/api/client/signup", async (req, res) => {
   const { name, email, password } = req.body;
   const hash = await bcrypt.hash(password, 10);
@@ -95,7 +98,6 @@ app.post("/api/client/signup", async (req, res) => {
   );
 });
 
-/* ===== EMAIL VERIFY ===== */
 app.post("/api/client/verify", (req, res) => {
   try {
     const { token } = req.body;
@@ -107,7 +109,6 @@ app.post("/api/client/verify", (req, res) => {
   }
 });
 
-/* ===== CLIENT LOGIN (JWT) ===== */
 app.post("/api/client/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -133,7 +134,7 @@ app.post("/api/client/login", (req, res) => {
   );
 });
 
-/* ===== FORGOT PASSWORD ===== */
+/* ===== FORGOT / RESET ===== */
 app.post("/api/client/forgot", (req, res) => {
   const { email } = req.body;
 
@@ -159,7 +160,6 @@ app.post("/api/client/forgot", (req, res) => {
   );
 });
 
-/* ===== RESET PASSWORD ===== */
 app.post("/api/client/reset", async (req, res) => {
   try {
     const { token, password } = req.body;
@@ -177,7 +177,9 @@ app.post("/api/client/reset", async (req, res) => {
   }
 });
 
-/* ===== CLIENT DATA (CLIENT-SPECIFIC) ===== */
+/* =========================================================
+   CLIENT DATA (ONLY OWN REVIEWS)
+   ========================================================= */
 app.get("/api/my/reviews", authClient, (req, res) => {
   db.all(
     "SELECT status, note, removal FROM reviews WHERE client_id=?",
@@ -186,7 +188,42 @@ app.get("/api/my/reviews", authClient, (req, res) => {
   );
 });
 
-/* ===== SERVER START ===== */
+/* =========================================================
+   ADMIN APIs (STEP 9)
+   ========================================================= */
+
+/* GET ALL VERIFIED CLIENTS */
+app.get("/api/admin/clients", (req, res) => {
+  db.all(
+    "SELECT id, name, email FROM client_users WHERE verified=1",
+    [],
+    (err, rows) => res.json(rows)
+  );
+});
+
+/* ADD REVIEW FOR CLIENT */
+app.post("/api/admin/reviews", (req, res) => {
+  const { client_id, status, note, removal } = req.body;
+
+  db.run(
+    "INSERT INTO reviews (client_id, status, note, removal) VALUES (?, ?, ?, ?)",
+    [client_id, status, note, removal],
+    () => res.json({ success: true })
+  );
+});
+
+/* GET ALL REVIEWS (ADMIN VIEW) */
+app.get("/api/reviews", (req, res) => {
+  db.all(
+    "SELECT client_id, status, note, removal FROM reviews",
+    [],
+    (err, rows) => res.json(rows)
+  );
+});
+
+/* =========================================================
+   START SERVER
+   ========================================================= */
 app.listen(PORT, "0.0.0.0", () => {
   console.log("SERVER STARTED ON PORT:", PORT);
 });
