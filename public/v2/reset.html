@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reset Password</title>
+</head>
+<body>
+
+<h2>Reset Password</h2>
+
+<input id="password" type="password" placeholder="New password"><br><br>
+
+<button onclick="resetPassword()">Reset Password</button>
+
+<script>
+const token = new URLSearchParams(window.location.search).get("token");
+
+async function resetPassword() {
+  const password = document.getElementById("password").value;
+
+  if (!password) {
+    alert("Password required");
+    return;
+  }
+
+  const res = await fetch("/api/client/reset", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, password })
+  });
+
+  if (res.ok) {
+    alert("Password reset successful. Please login.");
+    window.location.href = "client-login.html";
+  } else {
+    alert("Invalid or expired reset link");
+  }
+}
+</script>
+
+</body>
+</html>
