@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Forgot Password</title>
+</head>
+<body>
+
+<h2>Forgot Password</h2>
+
+<input id="email" type="email" placeholder="Enter your email"><br><br>
+
+<button onclick="forgot()">Send Reset Link</button>
+
+<p>
+  <a href="client-login.html">Back to Login</a>
+</p>
+
+<script>
+async function forgot() {
+  const email = document.getElementById("email").value;
+
+  if (!email) {
+    alert("Email required");
+    return;
+  }
+
+  await fetch("/api/client/forgot", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email })
+  });
+
+  alert("If account exists, reset link is generated (check server logs)");
+}
+</script>
+
+</body>
+</html>
