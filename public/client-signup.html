@@ -1,38 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head><title>Client Signup</title></head>
-<body>
-
+<!DOCTYPE html><html><head>
+<title>Signup</title>
+<style>body{font-family:Arial;background:#f4f6f8}.box{max-width:380px;margin:80px auto;background:#fff;padding:20px}</style>
+</head><body>
+<div class="box">
 <h2>Create Account</h2>
-
-<input id="name" placeholder="Name"><br>
-<input id="email" placeholder="Email"><br>
-<input id="password" type="password" placeholder="Password"><br>
-
-<button onclick="signup()">Create Account</button>
-
-<p>Already have account? <a href="/client-login.html">Login</a></p>
-
+<input id="name" placeholder="Name">
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="signup()">Signup</button>
+</div>
 <script>
-async function signup() {
-  const res = await fetch("/api/client/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: name.value,
-      email: email.value,
-      password: password.value
-    })
-  });
-
-  if (res.ok) {
-    alert("Account created. Please login.");
-    window.location.href = "/client-login.html";
-  } else {
-    alert("Signup failed");
-  }
+async function signup(){
+ const r=await fetch("/api/client/signup",{method:"POST",headers:{'Content-Type':'application/json'},
+ body:JSON.stringify({name:name.value,email:email.value,password:password.value})});
+ alert("Signup done. Verify email (check server log).");
 }
-</script>
-
-</body>
-  </html>
+</script></body></html>
