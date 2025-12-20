@@ -10,7 +10,11 @@ app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
 
-/* DATABASE */
+/* ================= ADMIN LOGIN ================= */
+const ADMIN_EMAIL = "admin@ormpanel.com";
+const ADMIN_PASSWORD = "admin123";
+
+/* ================= DATABASE ================= */
 const db = new sqlite3.Database("./db.sqlite");
 
 db.serialize(() => {
@@ -29,12 +33,23 @@ db.serialize(() => {
   )`);
 });
 
-/* ROUTES */
+/* ================= ROUTES ================= */
 app.get("/", (req, res) => {
   res.send("ORM Panel Backend Live 🚀");
 });
 
-/* CLIENTS API */
+/* ===== LOGIN API ===== */
+app.post("/api/login", (req, res) => {
+  const { email, password } = req.body;
+
+  if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false });
+  }
+});
+
+/* ===== CLIENT APIs ===== */
 app.get("/api/clients", (req, res) => {
   db.all("SELECT * FROM clients", [], (err, rows) => {
     res.json(rows);
@@ -50,7 +65,7 @@ app.post("/api/clients", (req, res) => {
   );
 });
 
-/* REVIEWS API */
+/* ===== REVIEW APIs ===== */
 app.get("/api/reviews", (req, res) => {
   db.all("SELECT * FROM reviews", [], (err, rows) => {
     res.json(rows);
