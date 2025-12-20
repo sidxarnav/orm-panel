@@ -5,10 +5,12 @@ const bodyParser = require("body-parser");
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const path = require("path");
 
 const app = express();
 app.use(bodyParser.json());
-app.use(express.static("public"));
+app.use(express.static("public")); // OLD public (admin + old files)
+app.use("/v2", express.static("public/v2")); // NEW client system
 
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = "super_secret_jwt_key_change_me";
@@ -27,6 +29,7 @@ db.serialize(() => {
     password TEXT,
     verified INTEGER DEFAULT 0
   )`);
+
   db.run(`CREATE TABLE IF NOT EXISTS reviews (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     client_id INTEGER,
@@ -48,14 +51,20 @@ function authClient(req, res, next) {
   }
 }
 
-/* ===== ROOT ===== */
-app.get("/", (req, res) => res.send("ORM Panel Live 🚀"));
+/* =========================================================
+   ROOT ENTRY POINT (SINGLE PUBLIC LINK)
+   ========================================================= */
+app.get("/", (req, res) => {
+  // Client always lands on new SaaS landing page
+  res.sendFile(path.join(__dirname, "public/v2/index.html"));
+});
 
 /* ===== ADMIN LOGIN ===== */
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
-  if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD)
+  if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
     return res.json({ success: true });
+  }
   res.status(401).json({ success: false });
 });
 
@@ -63,15 +72,25 @@ app.post("/api/login", (req, res) => {
 app.post("/api/client/signup", async (req, res) => {
   const { name, email, password } = req.body;
   const hash = await bcrypt.hash(password, 10);
+
   db.run(
     "INSERT INTO client_users (name, email, password) VALUES (?, ?, ?)",
     [name, email, hash],
     function (err) {
       if (err) return res.status(400).json({ error: "Email exists" });
 
-      const verifyToken = jwt.sign({ id: this.lastID }, JWT_SECRET, { expiresIn: "1d" });
-      console.log("VERIFY LINK 👉 http://localhost:3000/verify.html?token=" + verifyToken);
-      res.json({ success: true, message: "Verify email (check server log)" });
+      const verifyToken = jwt.sign(
+        { id: this.lastID },
+        JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      console.log(
+        "VERIFY LINK 👉 https://orm-panel.onrender.com/v2/verify.html?token=" +
+          verifyToken
+      );
+
+      res.json({ success: true });
     }
   );
 });
@@ -84,56 +103,90 @@ app.post("/api/client/verify", (req, res) => {
     db.run("UPDATE client_users SET verified=1 WHERE id=?", [data.id]);
     res.json({ success: true });
   } catch {
-    res.status(400).json({ error: "Invalid/expired token" });
+    res.status(400).json({ error: "Invalid or expired token" });
   }
 });
 
 /* ===== CLIENT LOGIN (JWT) ===== */
 app.post("/api/client/login", (req, res) => {
   const { email, password } = req.body;
-  db.get("SELECT * FROM client_users WHERE email=?", [email], async (e, u) => {
-    if (!u || !u.verified) return res.status(401).json({ error: "Invalid / Not verified" });
-    const ok = await bcrypt.compare(password, u.password);
-    if (!ok) return res.status(401).json({ error: "Invalid" });
 
-    const token = jwt.sign({ id: u.id, role: "client" }, JWT_SECRET, { expiresIn: "7d" });
-    res.json({ token, name: u.name });
-  });
+  db.get(
+    "SELECT * FROM client_users WHERE email=?",
+    [email],
+    async (err, user) => {
+      if (!user || !user.verified) {
+        return res.status(401).json({ error: "Invalid or not verified" });
+      }
+
+      const ok = await bcrypt.compare(password, user.password);
+      if (!ok) return res.status(401).json({ error: "Invalid" });
+
+      const token = jwt.sign(
+        { id: user.id, role: "client" },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      res.json({ token, name: user.name });
+    }
+  );
 });
 
 /* ===== FORGOT PASSWORD ===== */
 app.post("/api/client/forgot", (req, res) => {
   const { email } = req.body;
-  db.get("SELECT id FROM client_users WHERE email=?", [email], (e, u) => {
-    if (!u) return res.json({ success: true });
-    const t = jwt.sign({ id: u.id }, JWT_SECRET, { expiresIn: "15m" });
-    console.log("RESET LINK 👉 http://localhost:3000/reset.html?token=" + t);
-    res.json({ success: true });
-  });
+
+  db.get(
+    "SELECT id FROM client_users WHERE email=?",
+    [email],
+    (err, user) => {
+      if (!user) return res.json({ success: true });
+
+      const resetToken = jwt.sign(
+        { id: user.id },
+        JWT_SECRET,
+        { expiresIn: "15m" }
+      );
+
+      console.log(
+        "RESET LINK 👉 https://orm-panel.onrender.com/v2/reset.html?token=" +
+          resetToken
+      );
+
+      res.json({ success: true });
+    }
+  );
 });
 
 /* ===== RESET PASSWORD ===== */
 app.post("/api/client/reset", async (req, res) => {
   try {
     const { token, password } = req.body;
-    const d = jwt.verify(token, JWT_SECRET);
-    const h = await bcrypt.hash(password, 10);
-    db.run("UPDATE client_users SET password=? WHERE id=?", [h, d.id]);
+    const data = jwt.verify(token, JWT_SECRET);
+    const hash = await bcrypt.hash(password, 10);
+
+    db.run(
+      "UPDATE client_users SET password=? WHERE id=?",
+      [hash, data.id]
+    );
+
     res.json({ success: true });
   } catch {
-    res.status(400).json({ error: "Invalid/expired" });
+    res.status(400).json({ error: "Invalid or expired token" });
   }
 });
 
-/* ===== CLIENT DATA (MAPPED) ===== */
+/* ===== CLIENT DATA (CLIENT-SPECIFIC) ===== */
 app.get("/api/my/reviews", authClient, (req, res) => {
   db.all(
-    "SELECT status,note,removal FROM reviews WHERE client_id=?",
+    "SELECT status, note, removal FROM reviews WHERE client_id=?",
     [req.user.id],
-    (e, rows) => res.json(rows)
+    (err, rows) => res.json(rows)
   );
 });
 
-app.listen(PORT, "0.0.0.0", () =>
-  console.log("SERVER STARTED ON PORT:", PORT)
-);
+/* ===== SERVER START ===== */
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("SERVER STARTED ON PORT:", PORT);
+});
