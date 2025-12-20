@@ -1,26 +1,65 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <title>Forgot Password</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      padding: 30px;
+    }
+    .box {
+      max-width: 420px;
+      background: #fff;
+      padding: 25px;
+      margin: auto;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,.1);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    button {
+      background: #40739e;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    a {
+      display: block;
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
 
-<h2>Forgot Password</h2>
+<div class="box">
+  <h2>Forgot Password</h2>
 
-<input id="email" type="email" placeholder="Enter your email"><br><br>
+  <input id="email" type="email" placeholder="Enter your registered email">
 
-<button onclick="forgot()">Send Reset Link</button>
+  <button onclick="forgot()">Send Reset Link</button>
 
-<p>
-  <a href="client-login.html">Back to Login</a>
-</p>
+  <a href="/v2/client-login.html">Back to Client Login</a>
+</div>
 
 <script>
 async function forgot() {
   const email = document.getElementById("email").value;
 
   if (!email) {
-    alert("Email required");
+    alert("Email is required");
     return;
   }
 
@@ -30,7 +69,9 @@ async function forgot() {
     body: JSON.stringify({ email })
   });
 
-  alert("If account exists, reset link is generated (check server logs)");
+  alert(
+    "If an account exists for this email, a reset link has been generated."
+  );
 }
 </script>
 
