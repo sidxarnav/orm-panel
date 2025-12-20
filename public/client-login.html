@@ -1,36 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head><title>Client Login</title></head>
-<body>
-
+<!DOCTYPE html><html><head>
+<title>Client Login</title>
+<style>
+body{font-family:Arial;background:#f4f6f8}
+.box{max-width:380px;margin:80px auto;background:#fff;padding:20px;border-radius:6px}
+input,button{width:100%;padding:10px;margin-top:10px}
+button{background:#2f80ed;color:#fff;border:0}
+</style></head><body>
+<div class="box">
 <h2>Client Login</h2>
-
-<input id="email" placeholder="Email"><br>
-<input id="password" type="password" placeholder="Password"><br>
-
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
-
-<p>New user? <a href="/client-signup.html">Create account</a></p>
-
+<p><a href="/client-signup.html">Create account</a> • <a href="/forgot.html">Forgot?</a></p>
+</div>
 <script>
-async function login() {
-  const res = await fetch("/api/client/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: email.value,
-      password: password.value
-    })
-  });
-
-  if (res.ok) {
-    sessionStorage.setItem("clientLoggedIn", "true");
-    window.location.href = "/client-dashboard.html";
-  } else {
-    alert("Invalid login");
-  }
+async function login(){
+ const r=await fetch("/api/client/login",{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email.value,password:password.value})});
+ if(!r.ok) return alert("Login failed");
+ const d=await r.json(); localStorage.setItem("token",d.token);
+ location.href="/client-dashboard.html";
 }
-</script>
-
-</body>
-</html>
+</script></body></html>
