@@ -23,13 +23,14 @@ const ADMIN_PASSWORD = "adminishuxuday";
 const db = new sqlite3.Database("./db.sqlite");
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS client_users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT,
-  email TEXT UNIQUE,
-  password TEXT,
-  verified INTEGER DEFAULT 0,
-  paid INTEGER DEFAULT 0
-)`);
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    email TEXT UNIQUE,
+    password TEXT,
+    verified INTEGER DEFAULT 1,
+    paid INTEGER DEFAULT 0
+  )`);
+
   db.run(`CREATE TABLE IF NOT EXISTS reviews (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     client_id INTEGER,
@@ -65,46 +66,30 @@ app.post("/api/login", (req, res) => {
   res.status(401).json({ success: false });
 });
 
-/* ===== CLIENT SIGNUP ===== */
+/* ===== CLIENT SIGNUP (AUTO VERIFIED) ===== */
 app.post("/api/client/signup", async (req, res) => {
   const { name, email, password } = req.body;
   const hash = await bcrypt.hash(password, 10);
 
   db.run(
-    "INSERT INTO client_users (name,email,password) VALUES (?,?,?)",
+    "INSERT INTO client_users (name,email,password,verified) VALUES (?,?,?,1)",
     [name, email, hash],
     function (err) {
       if (err) return res.status(400).json({ error: "Email exists" });
-
-      const token = jwt.sign({ id: this.lastID }, JWT_SECRET, { expiresIn: "1d" });
-      console.log(
-        "VERIFY 👉 https://orm-panel.onrender.com/v2/verify.html?token=" + token
-      );
       res.json({ success: true });
     }
   );
 });
 
-/* ===== VERIFY ===== */
-app.post("/api/client/verify", (req, res) => {
-  try {
-    const { token } = req.body;
-    const data = jwt.verify(token, JWT_SECRET);
-    db.run("UPDATE client_users SET verified=1 WHERE id=?", [data.id]);
-    res.json({ success: true });
-  } catch {
-    res.status(400).json({ error: "Invalid token" });
-  }
-});
-
-/* ===== LOGIN ===== */
+/* ===== CLIENT LOGIN ===== */
 app.post("/api/client/login", (req, res) => {
   const { email, password } = req.body;
   db.get(
     "SELECT * FROM client_users WHERE email=?",
     [email],
     async (e, u) => {
-      if (!u || !u.verified) return res.sendStatus(401);
+      if (!u) return res.sendStatus(401);
+
       const ok = await bcrypt.compare(password, u.password);
       if (!ok) return res.sendStatus(401);
 
@@ -112,35 +97,6 @@ app.post("/api/client/login", (req, res) => {
       res.json({ token, name: u.name });
     }
   );
-});
-
-/* ===== FORGOT ===== */
-app.post("/api/client/forgot", (req, res) => {
-  const { email } = req.body;
-  db.get("SELECT id FROM client_users WHERE email=?", [email], (e, u) => {
-    if (!u) return res.json({ success: true });
-    const token = jwt.sign({ id: u.id }, JWT_SECRET, { expiresIn: "15m" });
-    console.log(
-      "RESET 👉 https://orm-panel.onrender.com/v2/reset.html?token=" + token
-    );
-    res.json({ success: true });
-  });
-});
-
-/* ===== RESET ===== */
-app.post("/api/client/reset", async (req, res) => {
-  try {
-    const { token, password } = req.body;
-    const data = jwt.verify(token, JWT_SECRET);
-    const hash = await bcrypt.hash(password, 10);
-    db.run("UPDATE client_users SET password=? WHERE id=?", [
-      hash,
-      data.id,
-    ]);
-    res.json({ success: true });
-  } catch {
-    res.status(400).json({ error: "Invalid" });
-  }
 });
 
 /* ===== CLIENT DATA ===== */
@@ -155,7 +111,7 @@ app.get("/api/my/reviews", authClient, (req, res) => {
 /* ===== ADMIN ===== */
 app.get("/api/admin/clients", (req, res) => {
   db.all(
-    "SELECT id,name,email FROM client_users WHERE verified=1",
+    "SELECT id,name,email FROM client_users",
     [],
     (e, r) => res.json(r)
   );
@@ -168,10 +124,6 @@ app.post("/api/admin/reviews", (req, res) => {
     [client_id, status, note, removal],
     () => res.json({ success: true })
   );
-});
-
-app.get("/api/reviews", (req, res) => {
-  db.all("SELECT * FROM reviews", [], (e, r) => res.json(r));
 });
 
 /* ===== START ===== */
