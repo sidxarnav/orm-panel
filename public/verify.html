@@ -1,0 +1,9 @@
+<!DOCTYPE html><html><body>
+<button onclick="v()">Verify Email</button>
+<script>
+async function v(){
+ const t=new URLSearchParams(location.search).get("token");
+ await fetch("/api/client/verify",{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t})});
+ alert("Verified"); location.href="/client-login.html";
+}
+</script></body></html>
