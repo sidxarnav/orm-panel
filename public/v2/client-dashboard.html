@@ -2,34 +2,98 @@
 <html>
 <head>
   <title>Client Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      margin: 0;
+    }
+    nav {
+      background: #2f3640;
+      color: #fff;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav button {
+      background: #e84118;
+      border: none;
+      color: #fff;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,.1);
+    }
+    h3 {
+      margin-top: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background: #f1f2f6;
+    }
+    .empty {
+      text-align: center;
+      color: #666;
+      padding: 20px;
+    }
+  </style>
 </head>
 
 <body onload="loadDashboard()">
 
-<h2 id="welcome"></h2>
+<script>
+  // ✅ AUTH GUARD
+  if (!localStorage.getItem("token")) {
+    window.location.href = "/v2/client-login.html";
+  }
+</script>
 
-<button onclick="logout()">Logout</button>
+<nav>
+  <span>ORM Client Dashboard</span>
+  <button onclick="logout()">Logout</button>
+</nav>
 
-<hr>
+<div class="container">
+  <h3 id="welcome">Welcome</h3>
 
-<h3>Your Reviews</h3>
+  <hr>
 
-<table border="1" cellpadding="10">
-  <thead>
-    <tr>
-      <th>Status</th>
-      <th>Note</th>
-      <th>Removal</th>
-    </tr>
-  </thead>
-  <tbody id="reviews"></tbody>
-</table>
+  <h4>Your Reviews</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Note</th>
+        <th>Removal</th>
+      </tr>
+    </thead>
+    <tbody id="reviews"></tbody>
+  </table>
+</div>
 
 <script>
-requireAuth();
-
 async function loadDashboard() {
-  const name = localStorage.getItem("clientName");
+  const name = localStorage.getItem("clientName") || "Client";
   document.getElementById("welcome").innerText =
     "Welcome, " + name;
 
@@ -44,12 +108,13 @@ async function loadDashboard() {
   const data = await res.json();
   const tbody = document.getElementById("reviews");
 
-  if (!data.length) {
+  if (!data || !data.length) {
     tbody.innerHTML =
-      "<tr><td colspan='3'>No reviews yet</td></tr>";
+      "<tr><td colspan='3' class='empty'>No reviews assigned yet</td></tr>";
     return;
   }
 
+  tbody.innerHTML = "";
   data.forEach(r => {
     tbody.innerHTML += `
       <tr>
@@ -60,9 +125,12 @@ async function loadDashboard() {
     `;
   });
 }
-</script>
 
-<script src="app.js"></script>
+function logout() {
+  localStorage.clear();
+  window.location.href = "/v2/client-login.html";
+}
+</script>
 
 </body>
 </html>
