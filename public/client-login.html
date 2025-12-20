@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head><title>Client Login</title></head>
+<body>
+
+<h2>Client Login</h2>
+
+<input id="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Password"><br>
+
+<button onclick="login()">Login</button>
+
+<p>New user? <a href="/client-signup.html">Create account</a></p>
+
+<script>
+async function login() {
+  const res = await fetch("/api/client/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: email.value,
+      password: password.value
+    })
+  });
+
+  if (res.ok) {
+    sessionStorage.setItem("clientLoggedIn", "true");
+    window.location.href = "/client-dashboard.html";
+  } else {
+    alert("Invalid login");
+  }
+}
+</script>
+
+</body>
+</html>
