@@ -23,13 +23,13 @@ const ADMIN_PASSWORD = "adminishuxuday";
 const db = new sqlite3.Database("./db.sqlite");
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS client_users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    email TEXT UNIQUE,
-    password TEXT,
-    verified INTEGER DEFAULT 0
-  )`);
-
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  email TEXT UNIQUE,
+  password TEXT,
+  verified INTEGER DEFAULT 0,
+  paid INTEGER DEFAULT 0
+)`);
   db.run(`CREATE TABLE IF NOT EXISTS reviews (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     client_id INTEGER,
