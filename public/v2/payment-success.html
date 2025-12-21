@@ -1,0 +1,11 @@
+<script>
+fetch("/api/payment/confirm", {
+  headers: {
+    Authorization: "Bearer " + localStorage.getItem("token")
+  }
+})
+.then(() => {
+  alert("Payment successful!");
+  window.location.href = "/v2/client-dashboard.html";
+});
+</script>
