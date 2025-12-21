@@ -1,37 +1,107 @@
-<h2>Admin Panel</h2>
-<table border="1" cellpadding="10" id="users"></table>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f6fa;
+      padding: 20px;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+    th {
+      background: #2f3640;
+      color: #fff;
+    }
+    button {
+      padding: 6px 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .paid {
+      background: #44bd32;
+      color: #fff;
+    }
+    .free {
+      background: #e84118;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Admin Panel — Users</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Paid</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="users"></tbody>
+</table>
 
 <script>
-fetch("/api/admin/users", {
-  headers: { key: "SUPER_ADMIN_KEY_123" }
-})
-.then(r => r.json())
-.then(data => {
-  const t = document.getElementById("users");
-  t.innerHTML = "<tr><th>ID</th><th>Name</th><th>Email</th><th>Paid</th><th>Action</th></tr>";
-  data.forEach(u => {
-    t.innerHTML += `
+const ADMIN_KEY = "SUPER_ADMIN_KEY_123";
+
+async function loadUsers() {
+  const res = await fetch("/api/admin/users", {
+    headers: { key: ADMIN_KEY }
+  });
+  const users = await res.json();
+
+  const tbody = document.getElementById("users");
+  tbody.innerHTML = "";
+
+  users.forEach(u => {
+    tbody.innerHTML += `
       <tr>
         <td>${u.id}</td>
         <td>${u.name}</td>
         <td>${u.email}</td>
-        <td>${u.paid}</td>
+        <td>${u.paid ? "YES" : "NO"}</td>
         <td>
-          <button onclick="setPaid(${u.id},1)">PAID</button>
-          <button onclick="setPaid(${u.id},0)">FREE</button>
+          <button class="${u.paid ? "free" : "paid"}"
+            onclick="setPaid(${u.id}, ${u.paid ? 0 : 1})">
+            ${u.paid ? "Mark Free" : "Mark Paid"}
+          </button>
         </td>
-      </tr>`;
+      </tr>
+    `;
   });
-});
+}
 
-function setPaid(id, paid) {
-  fetch("/api/admin/set-paid", {
+async function setPaid(id, paid) {
+  await fetch("/api/admin/set-paid", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      key: "SUPER_ADMIN_KEY_123"
+      key: ADMIN_KEY
     },
-    body: JSON.stringify({ userId:id, paid })
-  }).then(() => location.reload());
+    body: JSON.stringify({ userId: id, paid })
+  });
+  loadUsers();
 }
+
+loadUsers();
 </script>
+
+</body>
+</html>
